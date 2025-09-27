@@ -227,7 +227,7 @@ func (d *Database) Search(query string, page, limit int, columns []string) ([]mo
 
 	// Build search query for FTS5
 	// FTS5 uses a different syntax than regular SQL
-	ftsQuery := fmt.Sprintf("csv_data_fts MATCH ? ORDER BY rank")
+	ftsQuery := "csv_data_fts MATCH ? ORDER BY rank"
 
 	// Get total count
 	countQuery := fmt.Sprintf(`
@@ -404,7 +404,7 @@ func (d *Database) GetSuggestions(query string, limit int) ([]string, error) {
 
 // Helper functions
 
-func ensureDir(path string) error {
+func ensureDir(_ string) error {
 	return nil // For now, assume directory exists or will be created by the system
 }
 
