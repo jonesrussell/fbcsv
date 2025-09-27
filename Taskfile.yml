@@ -1,0 +1,292 @@
+version: '3'
+
+vars:
+  BINARY_NAME: csv-search
+  BACKEND_PORT: 8080
+  FRONTEND_PORT: 3000
+  CSV_FILE: data.csv
+  BUILD_DIR: bin
+  DIST_DIR: dist
+
+tasks:
+  # Default task - show help
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
+
+  # Development tasks
+  dev:
+    desc: "Start development servers (Go backend + Vite frontend)"
+    cmds:
+      - echo "Starting development servers..."
+      - echo "Backend will be available at: http://localhost:{{.BACKEND_PORT}}"
+      - echo "Frontend will be available at: http://localhost:{{.FRONTEND_PORT}}"
+      - echo ""
+      - echo "Press Ctrl+C to stop both servers"
+      - task: [backend-dev, frontend-dev]
+    parallel: true
+
+  backend-dev:
+    desc: "Start Go backend development server"
+    cmds:
+      - go run cmd/server/main.go -csv={{.CSV_FILE}} -port={{.BACKEND_PORT}}
+
+  frontend-dev:
+    desc: "Start Vite frontend development server"
+    dir: web
+    cmds:
+      - npm run dev
+
+  # Backend tasks
+  run:
+    desc: "Run the Go backend server"
+    cmds:
+      - echo "Starting Go backend server..."
+      - go run cmd/server/main.go -csv={{.CSV_FILE}} -port={{.BACKEND_PORT}}
+
+  run-prod:
+    desc: "Run the Go backend server in production mode"
+    cmds:
+      - echo "Starting Go backend server in production mode..."
+      - go run cmd/server/main.go -csv={{.CSV_FILE}} -port={{.BACKEND_PORT}} -max-results=1000
+
+  # Frontend tasks
+  dev-frontend:
+    desc: "Start only the frontend development server"
+    dir: web
+    cmds:
+      - echo "Starting frontend development server..."
+      - npm run dev
+
+  build-frontend:
+    desc: "Build the frontend for production"
+    dir: web
+    cmds:
+      - echo "Building frontend for production..."
+      - npm run build
+
+  # Dependencies
+  install-deps:
+    desc: "Install all dependencies (Go + Node.js)"
+    cmds:
+      - echo "Installing Go dependencies..."
+      - go mod tidy
+      - echo "Installing Node.js dependencies..."
+      - dir: web
+        cmd: npm install
+
+  # Code Quality
+  lint:
+    desc: "Run linting for both Go and TypeScript"
+    cmds:
+      - echo "Linting Go code..."
+      - golangci-lint run
+      - echo "Linting TypeScript code..."
+      - dir: web
+        cmd: npm run lint
+
+  format:
+    desc: "Format code (Go + TypeScript)"
+    cmds:
+      - echo "Formatting Go code..."
+      - go fmt ./...
+      - echo "Formatting TypeScript code..."
+      - dir: web
+        cmd: npm run lint:fix
+
+  # Testing
+  test:
+    desc: "Run tests"
+    cmds:
+      - echo "Running Go tests..."
+      - go test -v ./...
+      - echo "Running TypeScript type checking..."
+      - dir: web
+        cmd: npm run type-check
+
+  # Build
+  build:
+    desc: "Build the entire application"
+    deps: [build-frontend]
+    cmds:
+      - echo "Building Go application..."
+      - mkdir -p {{.BUILD_DIR}}
+      - go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}} cmd/server/main.go
+      - echo "Build complete! Binary available at: {{.BUILD_DIR}}/{{.BINARY_NAME}}"
+
+  build-frontend-only:
+    desc: "Build only the frontend"
+    dir: web
+    cmds:
+      - echo "Building frontend for production..."
+      - npm run build
+
+  # Cleanup
+  clean:
+    desc: "Clean build artifacts and dependencies"
+    cmds:
+      - echo "Cleaning build artifacts..."
+      - rm -rf {{.DIST_DIR}}/
+      - rm -rf {{.BUILD_DIR}}/
+      - rm -rf web/node_modules/
+      - go clean
+      - echo "Cleanup complete!"
+
+  # Sample Data
+  generate-sample:
+    desc: "Generate a sample CSV file for testing"
+    cmds:
+      - echo "Generating sample CSV file..."
+      - |
+        python3 -c "
+        import csv, random, string
+        with open('{{.CSV_FILE}}', 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['id', 'name', 'email', 'company', 'department', 'salary', 'location', 'phone', 'start_date', 'status'])
+            for i in range(1, 10001):
+                writer.writerow([
+                    i,
+                    f'User {i}',
+                    f'user{i}@example.com',
+                    random.choice(['Acme Corp', 'Tech Solutions', 'Global Inc', 'StartupXYZ']),
+                    random.choice(['Engineering', 'Sales', 'Marketing', 'HR']),
+                    random.randint(30000, 150000),
+                    random.choice(['New York', 'San Francisco', 'London', 'Tokyo']),
+                    f'+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}',
+                    f'2020-{random.randint(1, 12):02d}-{random.randint(1, 28):02d}',
+                    random.choice(['active', 'inactive', 'pending'])
+                ])
+        "
+      - echo "Sample CSV file generated: {{.CSV_FILE}} (10,000 rows)"
+
+  # Docker tasks
+  docker-build:
+    desc: "Build Docker image"
+    cmds:
+      - echo "Building Docker image..."
+      - docker build -t {{.BINARY_NAME}} .
+
+  docker-run:
+    desc: "Run Docker container"
+    cmds:
+      - echo "Running Docker container..."
+      - docker run -p {{.BACKEND_PORT}}:{{.BACKEND_PORT}} -v $(pwd)/{{.CSV_FILE}}:/app/{{.CSV_FILE}} {{.BINARY_NAME}}
+
+  # Development utilities
+  check-deps:
+    desc: "Check if all dependencies are installed"
+    cmds:
+      - echo "Checking dependencies..."
+      - |
+        command -v go >/dev/null 2>&1 || { echo "Go is not installed. Please install Go 1.21+"; exit 1; }
+        command -v node >/dev/null 2>&1 || { echo "Node.js is not installed. Please install Node.js 18+"; exit 1; }
+        command -v npm >/dev/null 2>&1 || { echo "npm is not installed. Please install npm"; exit 1; }
+      - echo "All dependencies are installed!"
+
+  setup:
+    desc: "Complete setup for development"
+    deps: [check-deps, install-deps, generate-sample]
+    cmds:
+      - echo "Setup complete! You can now run 'task dev' to start development servers."
+
+  # Performance testing
+  benchmark:
+    desc: "Run performance benchmarks"
+    cmds:
+      - echo "Running performance benchmarks..."
+      - go test -bench=. -benchmem ./internal/search/
+
+  # Health check
+  health:
+    desc: "Check if the application is running"
+    cmds:
+      - echo "Checking application health..."
+      - |
+        curl -s http://localhost:{{.BACKEND_PORT}}/api/health | jq . || echo "Application is not running or jq is not installed"
+
+  # Quick start
+  quick-start:
+    desc: "Quick start: setup and run development servers"
+    deps: [setup]
+    cmds:
+      - task: dev
+
+  # Additional utility tasks
+  logs:
+    desc: "Show application logs"
+    cmds:
+      - echo "Application logs (if running):"
+      - |
+        if pgrep -f "go run cmd/server/main.go" > /dev/null; then
+          echo "Backend is running"
+        else
+          echo "Backend is not running"
+        fi
+
+  stop:
+    desc: "Stop all running development servers"
+    cmds:
+      - echo "Stopping development servers..."
+      - pkill -f "go run cmd/server/main.go" || true
+      - pkill -f "npm run dev" || true
+      - echo "Servers stopped"
+
+  restart:
+    desc: "Restart development servers"
+    deps: [stop]
+    cmds:
+      - task: dev
+
+  # Code generation
+  generate:
+    desc: "Generate Go code (if using code generation)"
+    cmds:
+      - echo "Generating Go code..."
+      - go generate ./...
+
+  # Security
+  security:
+    desc: "Run security checks"
+    cmds:
+      - echo "Running Go security checks..."
+      - go list -json -deps ./... | nancy sleuth
+      - echo "Running npm audit..."
+      - dir: web
+        cmd: npm audit
+
+  # Documentation
+  docs:
+    desc: "Generate documentation"
+    cmds:
+      - echo "Generating Go documentation..."
+      - godoc -http=:6060 &
+      - echo "Go documentation available at: http://localhost:6060"
+      - echo "Press Ctrl+C to stop"
+
+  # Database tasks (if needed in future)
+  migrate:
+    desc: "Run database migrations (placeholder)"
+    cmds:
+      - echo "No database migrations needed for this application"
+
+  # Monitoring
+  monitor:
+    desc: "Monitor application performance"
+    cmds:
+      - echo "Starting performance monitoring..."
+      - |
+        while true; do
+          echo "=== $(date) ==="
+          curl -s http://localhost:{{.BACKEND_PORT}}/api/health | jq . || echo "Backend not responding"
+          sleep 5
+        done
+
+  # Backup
+  backup:
+    desc: "Backup application data"
+    cmds:
+      - echo "Creating backup..."
+      - mkdir -p backups
+      - cp {{.CSV_FILE}} backups/{{.CSV_FILE}}.$(date +%Y%m%d_%H%M%S)
+      - echo "Backup created in backups/ directory"
