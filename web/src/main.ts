@@ -198,6 +198,7 @@ class CSVSearchApp {
       // Hide loading screen and show app
       this.elements.loadingScreen.classList.add('hidden');
       this.elements.app.classList.remove('hidden');
+      this.elements.app.classList.add('flex', 'flex-col');
 
       // Check for indexing progress
       this.checkIndexingProgress();
@@ -283,10 +284,20 @@ class CSVSearchApp {
 
     // Show/hide loading state
     this.elements.loadingState.classList.toggle('hidden', !searchState.loading);
+    if (searchState.loading) {
+      this.elements.loadingState.classList.add('flex');
+    } else {
+      this.elements.loadingState.classList.remove('flex');
+    }
 
     // Show/hide results
     const hasResults = searchState.results.length > 0;
     this.elements.resultsHeader.classList.toggle('hidden', !hasResults);
+    if (hasResults) {
+      this.elements.resultsHeader.classList.add('flex');
+    } else {
+      this.elements.resultsHeader.classList.remove('flex');
+    }
     this.elements.resultsTable.classList.toggle('hidden', !hasResults);
     this.elements.emptyState.classList.toggle('hidden', hasResults || searchState.loading);
 
@@ -340,6 +351,11 @@ class CSVSearchApp {
   private updatePagination(searchState: any): void {
     const hasResults = searchState.results.length > 0;
     this.elements.pagination.classList.toggle('hidden', !hasResults);
+    if (hasResults) {
+      this.elements.pagination.classList.add('flex');
+    } else {
+      this.elements.pagination.classList.remove('flex');
+    }
 
     if (hasResults) {
       this.elements.currentPage.textContent = searchState.page.toString();
