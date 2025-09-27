@@ -193,12 +193,8 @@ export class SearchManager {
     if (query.trim()) {
       this.debouncedSearch(query);
     } else {
-      this.updateState({ 
-        results: [], 
-        total: 0, 
-        totalPages: 0, 
-        loading: false 
-      });
+      // Show first page of all results when query is empty
+      this.performSearch("", 1);
     }
   }
 
@@ -226,21 +222,14 @@ export class SearchManager {
    * Perform search
    */
   private async performSearch(query: string, page: number = 1, limit?: number): Promise<void> {
-    if (!query.trim()) {
-      this.updateState({ 
-        results: [], 
-        total: 0, 
-        totalPages: 0, 
-        loading: false 
-      });
-      return;
-    }
+    // If query is empty, show all results (first page)
+    const searchQuery = query.trim() || "*";
 
     this.updateState({ loading: true, error: null });
 
     try {
       const response = await this.api.search({
-        query,
+        query: searchQuery,
         page,
         limit: limit || this.state.limit,
       });
@@ -344,6 +333,9 @@ export class AppStateManager {
       }
 
       this.notifyListeners();
+      
+      // Load initial results (first page of all data)
+      this.searchManager.setQuery("");
     } catch (error) {
       console.error('Failed to initialize app state:', error);
     }

@@ -83,8 +83,9 @@ func (s *Searcher) Search(ctx context.Context, req *models.SearchRequest) (*mode
 
 // validateRequest validates the search request
 func (s *Searcher) validateRequest(req *models.SearchRequest) error {
+	// Allow empty query for wildcard search
 	if req.Query == "" {
-		return fmt.Errorf("query cannot be empty")
+		req.Query = "*"
 	}
 	if req.Page < 1 {
 		req.Page = 1
@@ -100,6 +101,11 @@ func (s *Searcher) validateRequest(req *models.SearchRequest) error {
 
 // performSearch performs the actual search operation
 func (s *Searcher) performSearch(ctx context.Context, req *models.SearchRequest, index *Index) ([]SearchResult, error) {
+	// Handle wildcard query to return all results
+	if req.Query == "*" || req.Query == "" {
+		return s.getAllResults(req.Page, req.Limit, index), nil
+	}
+
 	// Tokenize query
 	queryTokens := s.tokenizeQuery(req.Query)
 	if len(queryTokens) == 0 {
@@ -149,6 +155,31 @@ func (s *Searcher) performSearch(ctx context.Context, req *models.SearchRequest,
 	})
 
 	return results, nil
+}
+
+// getAllResults returns all results with pagination
+func (s *Searcher) getAllResults(page, limit int, index *Index) []SearchResult {
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start >= len(index.rows) {
+		return []SearchResult{}
+	}
+
+	if end > len(index.rows) {
+		end = len(index.rows)
+	}
+
+	results := make([]SearchResult, 0, end-start)
+	for i := start; i < end; i++ {
+		results = append(results, SearchResult{
+			RowIndex:   i,
+			Score:      1.0, // Default score for all results
+			Highlights: make(map[string][]string),
+		})
+	}
+
+	return results
 }
 
 // tokenizeQuery tokenizes the search query
