@@ -2,6 +2,7 @@
   "name": "csv-search-frontend",
   "version": "1.0.0",
   "description": "High-performance CSV search interface",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
