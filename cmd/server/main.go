@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"csv-search/internal/api"
+	"csv-search/internal/database"
 	"csv-search/internal/models"
 	"csv-search/internal/search"
 )
@@ -47,9 +48,16 @@ func main() {
 		log.Fatalf("CSV file not found: %s", config.CSVFilePath)
 	}
 
-	// Create indexer and searcher
-	indexer := search.NewIndexer(config)
-	searcher := search.NewSearcher(indexer, config)
+	// Create database
+	db, err := database.NewDatabase(config)
+	if err != nil {
+		log.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	// Create database-based indexer and searcher
+	indexer := search.NewDatabaseIndexer(db, config)
+	searcher := search.NewDatabaseSearcher(db, config)
 
 	// Create handler
 	handler := api.NewHandler(indexer, searcher, config)

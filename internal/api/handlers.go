@@ -15,13 +15,13 @@ import (
 
 // Handler handles HTTP requests
 type Handler struct {
-	indexer  *search.Indexer
-	searcher *search.Searcher
+	indexer  search.IndexerInterface
+	searcher search.SearcherInterface
 	config   *models.Config
 }
 
 // NewHandler creates a new handler instance
-func NewHandler(indexer *search.Indexer, searcher *search.Searcher, config *models.Config) *Handler {
+func NewHandler(indexer search.IndexerInterface, searcher search.SearcherInterface, config *models.Config) *Handler {
 	return &Handler{
 		indexer:  indexer,
 		searcher: searcher,
