@@ -1,0 +1,68 @@
+---
+globs: "*.ts,*.tsx"
+description: "TypeScript coding standards and best practices for the frontend"
+---
+
+# TypeScript Coding Standards
+
+## Type Safety
+
+- Use strict mode (enabled in [tsconfig.json](mdc:tsconfig.json))
+- Define explicit types for all API responses
+- Use interfaces for object shapes
+- Avoid `any` type - use `unknown` if needed
+
+## API Integration
+
+- Define types in [web/src/types.ts](mdc:web/src/types.ts)
+- Use consistent naming for API endpoints
+- Handle errors gracefully with proper error types
+- Implement request cancellation for better UX
+
+## Performance
+
+- Use debouncing for search inputs (300ms)
+- Implement virtual scrolling for large result sets
+- Cache API responses when appropriate
+- Use request cancellation to avoid race conditions
+
+## Code Organization
+
+- Keep components focused and single-purpose
+- Use utility functions in [web/src/utils.ts](mdc:web/src/utils.ts)
+- Separate API logic in [web/src/search.ts](mdc:web/src/search.ts)
+- Follow consistent naming conventions
+
+## Example Patterns
+
+```typescript
+// API response typing
+interface SearchResponse {
+  results: SearchResult[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Error handling
+try {
+  const response = await searchAPI.search(query);
+  // handle success
+} catch (error) {
+  console.error('Search failed:', error);
+  // handle error
+}
+
+// Request cancellation
+const controller = new AbortController();
+const response = await fetch(url, {
+  signal: controller.signal
+});
+```
+
+## Development Tools
+
+- Use ESLint with TypeScript rules
+- Enable Prettier for code formatting
+- Use Vite for fast development builds
+- Enable hot module replacement

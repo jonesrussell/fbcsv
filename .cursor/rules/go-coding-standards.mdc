@@ -1,0 +1,61 @@
+---
+globs: "*.go"
+description: "Go coding standards and best practices for the CSV search project"
+---
+
+# Go Coding Standards
+
+## Code Style and Formatting
+
+- Use `gofumpt` for formatting (configured in gopls)
+- Follow standard Go idioms and conventions
+- Use meaningful variable and function names
+- Prefer explicit error handling over panics
+
+## Error Handling
+
+- Always handle errors explicitly
+- Use `fmt.Errorf` with `%w` verb for error wrapping
+- Return errors early to avoid deep nesting
+- Log errors with context using `log.Printf`
+
+## Database Operations
+
+- Use prepared statements for dynamic queries
+- Always close database connections and rows
+- Use transactions for multi-step operations
+- Sanitize column names for SQL safety
+
+## Performance Considerations
+
+- Use streaming for large CSV files
+- Implement proper connection pooling
+- Use context for request timeouts
+- Cache frequently accessed data
+
+## Example Patterns
+
+```go
+// Error handling
+if err != nil {
+    return fmt.Errorf("operation failed: %w", err)
+}
+
+// Database operations
+rows, err := db.Query(query, args...)
+if err != nil {
+    return fmt.Errorf("query failed: %w", err)
+}
+defer rows.Close()
+
+// Context usage
+ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+defer cancel()
+```
+
+## Linting Rules
+
+- Use `golangci-lint` with `--fast` flag
+- Enable `unusedparams` and `shadow` analyses
+- Fix all linter warnings before committing
+- Use `_` for intentionally unused parameters

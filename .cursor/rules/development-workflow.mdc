@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+description: "Development workflow and task automation for the CSV search project"
+---
+
+# Development Workflow
+
+## Task Automation
+
+This project uses [Taskfile.yml](mdc:Taskfile.yml) for development automation. Key commands:
+
+### Development
+- `task dev` - Start both backend and frontend development servers
+- `task backend-dev` - Start only Go backend server
+- `task frontend-dev` - Start only Vite frontend server
+- `task quick-start` - Complete setup and start development
+
+### Code Quality
+- `task lint` - Run linting for both Go and TypeScript
+- `task format` - Format code (Go + TypeScript)
+- `task test` - Run all tests
+- `task security` - Run security checks
+
+### Build and Deploy
+- `task build` - Build entire application
+- `task build-frontend` - Build frontend for production
+- `task run-prod` - Run production server
+
+## Development Setup
+
+1. **Prerequisites**: Go 1.24+, Node.js 18+
+2. **Install dependencies**: `task install-deps`
+3. **Generate sample data**: `task generate-sample`
+4. **Start development**: `task dev`
+
+## Hot Reloading
+
+- **Backend**: Go server supports hot reloading with `go run`
+- **Frontend**: Vite provides instant hot module replacement
+- **Configuration**: Both servers configured for optimal development experience
+
+## Code Quality Tools
+
+### Go
+- `golangci-lint` with `--fast` flag
+- `gofumpt` for code formatting
+- `gopls` with unusedparams and shadow analyses
+- Lint on save at package level
+
+### TypeScript
+- ESLint with TypeScript rules
+- Prettier for code formatting
+- Strict mode enabled
+- Type checking with `tsc --noEmit`
+
+## Performance Monitoring
+
+- `task benchmark` - Run performance benchmarks
+- `task health` - Check application health
+- `task monitor` - Monitor application performance
+- Built-in logging for request tracking
+
+## File Organization
+
+- Keep Go code in `internal/` package
+- Frontend code in `web/src/`
+- Configuration files at project root
+- Use consistent naming conventions across languages

@@ -1,0 +1,49 @@
+---
+alwaysApply: true
+description: "CSV Search project structure and architecture guide"
+---
+
+# CSV Search Project Structure
+
+This is a high-performance CSV search application with Go backend and TypeScript frontend.
+
+## Architecture Overview
+
+- **Backend**: Go HTTP server with SQLite database and FTS5 search
+- **Frontend**: TypeScript/Vite application with Tailwind CSS
+- **Data**: CSV files up to 325MB with sub-200ms search response times
+
+## Key Files and Directories
+
+### Backend (Go)
+- [cmd/server/main.go](mdc:cmd/server/main.go) - Application entry point
+- [internal/api/handlers.go](mdc:internal/api/handlers.go) - HTTP request handlers
+- [internal/database/database.go](mdc:internal/database/database.go) - SQLite database operations
+- [internal/search/](mdc:internal/search/) - Search indexing and query logic
+- [internal/models/types.go](mdc:internal/models/types.go) - Data structures and types
+
+### Frontend (TypeScript)
+- [web/src/main.ts](mdc:web/src/main.ts) - Application entry point
+- [web/src/search.ts](mdc:web/src/search.ts) - API client for search operations
+- [web/src/types.ts](mdc:web/src/types.ts) - TypeScript type definitions
+- [web/index.html](mdc:web/index.html) - Main HTML template
+
+### Configuration
+- [go.mod](mdc:go.mod) - Go module dependencies
+- [package.json](mdc:package.json) - Node.js dependencies and scripts
+- [Taskfile.yml](mdc:Taskfile.yml) - Development task automation
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration
+
+## Development Workflow
+
+1. **Backend**: Go 1.24+ with SQLite3 and FTS5 for full-text search
+2. **Frontend**: TypeScript with Vite, Tailwind CSS, and strict mode
+3. **Tasks**: Use `task` command for development automation
+4. **Hot Reloading**: Both backend and frontend support hot reloading
+
+## Performance Targets
+
+- Index build time: < 30s for 325MB files
+- Search response: < 200ms average
+- Memory usage: < 2GB total
+- Concurrent users: 50+ supported

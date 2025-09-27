@@ -1,0 +1,81 @@
+---
+globs: "internal/database/*.go"
+description: "Database patterns and SQLite best practices for the CSV search application"
+---
+
+# Database Patterns and Best Practices
+
+## SQLite Configuration
+
+- Use WAL mode for better concurrency: `_journal_mode=WAL`
+- Enable foreign keys: `_foreign_keys=ON`
+- Set appropriate cache size: `_cache_size=10000`
+- Use normal synchronous mode: `_synchronous=NORMAL`
+
+## FTS5 Full-Text Search
+
+- Create FTS5 virtual tables for search functionality
+- Use `MATCH` operator for search queries
+- Implement ranking with `ORDER BY rank`
+- Use `snippet()` function for search suggestions
+
+## Table Design
+
+### CSV Metadata Table
+```sql
+CREATE TABLE csv_metadata (
+    id INTEGER PRIMARY KEY,
+    file_path TEXT UNIQUE NOT NULL,
+    file_size INTEGER NOT NULL,
+    row_count INTEGER NOT NULL,
+    column_count INTEGER NOT NULL,
+    indexed_at DATETIME NOT NULL,
+    columns TEXT NOT NULL -- JSON array
+)
+```
+
+### Dynamic Data Tables
+- Create tables dynamically based on CSV columns
+- Sanitize column names for SQL safety
+- Use prepared statements for all dynamic queries
+- Implement proper indexing for performance
+
+## Connection Management
+
+- Use connection pooling (max 10 open, 5 idle)
+- Always close connections and rows
+- Use transactions for multi-step operations
+- Implement proper error handling
+
+## Performance Optimization
+
+- Use streaming for large CSV imports
+- Implement batch inserts for better performance
+- Use prepared statements to avoid SQL injection
+- Monitor query performance and optimize as needed
+
+## Example Patterns
+
+```go
+// Dynamic table creation
+createSQL := fmt.Sprintf(`
+    CREATE TABLE csv_data (
+        row_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        %s
+    )
+`, strings.Join(columnDefs, ", "))
+
+// FTS5 search query
+ftsQuery := "csv_data_fts MATCH ? ORDER BY rank"
+
+// Safe column name sanitization
+func sanitizeColumnName(name string) string {
+    // Replace problematic characters
+    name = strings.ReplaceAll(name, " ", "_")
+    // Ensure valid SQL identifier
+    if !isValidSQLIdentifierStart(name[0]) {
+        name = "_" + name
+    }
+    return name
+}
+```

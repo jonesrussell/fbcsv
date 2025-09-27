@@ -1,0 +1,64 @@
+---
+globs: "internal/api/*.go,web/src/*.ts"
+description: "API design patterns and conventions for the CSV search application"
+---
+
+# API Design Standards
+
+## RESTful Endpoints
+
+The application follows RESTful conventions with these endpoints:
+
+### Search API
+- `GET /api/search` - Search CSV data with pagination
+- `GET /api/suggestions` - Get search suggestions
+- `GET /api/columns` - Get available column names
+- `GET /api/stats` - Get file statistics
+- `GET /api/progress` - Get indexing progress
+- `GET /api/health` - Health check endpoint
+
+## Request/Response Patterns
+
+### Search Request
+```go
+type SearchRequest struct {
+    Query   string   `json:"query" form:"q"`
+    Page    int      `json:"page" form:"page"`
+    Limit   int      `json:"limit" form:"limit"`
+    Columns []string `json:"columns" form:"columns"`
+}
+```
+
+### Search Response
+```go
+type SearchResponse struct {
+    Results    []SearchResult `json:"results"`
+    Total      int            `json:"total"`
+    Page       int            `json:"page"`
+    Limit      int            `json:"limit"`
+    TotalPages int            `json:"total_pages"`
+    Query      string         `json:"query"`
+    Duration   time.Duration  `json:"duration_ms"`
+}
+```
+
+## Error Handling
+
+- Use consistent error response format
+- Include appropriate HTTP status codes
+- Provide meaningful error messages
+- Log errors with context
+
+## Performance Considerations
+
+- Implement request timeouts (30s for search, 5s for suggestions)
+- Use pagination for large result sets
+- Enable CORS for frontend integration
+- Implement proper logging and monitoring
+
+## Frontend Integration
+
+- Use TypeScript interfaces matching Go structs
+- Implement proper error handling in API calls
+- Use debouncing for search inputs
+- Handle loading states and progress indicators
