@@ -17,7 +17,6 @@ tasks:
     cmds:
       - task: backend-dev
       - task: frontend-dev
-    parallel: true
 
   backend-dev:
     desc: "Start Go backend development server"
